@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mwaslatak - Live Map</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .map-container {
+            position: relative;
+            height: calc(100vh - 80px);
+            display: flex;
+        }
+
+        #map {
+            flex: 1;
+            height: 100%;
+        }
+
+        .controls {
+            width: 300px;
+            background: white;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .control-group:last-child {
+            border-bottom: none;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .btn-success {
+            background: #27ae60;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+        }
+
+        .form-control option {
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .transport-type {
+            background: white;
+            color: #333;
+            border: 1px solid #ddd;
+            font-weight: normal;
+        }
+
+        .transport-type:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+        }
+
+        .metro-controls {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn-metro {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-metro:hover {
+            background: #c0392b;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .status {
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .login-form {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 1000;
+        }
+
+        .login-form h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .login-form button {
+            width: 100%;
+            padding: 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .login-form button:hover {
+            background: #2980b9;
+        }
+
+        .error {
+            color: #e74c3c;
+            margin-top: 10px;
+        }
+
+        .success {
+            color: #27ae60;
+            margin-top: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">🗺️ Mwaslatak</div>
+        <div class="nav-links">
+            <a href="/admin">Admin Dashboard</a>
+            <a href="/">Home</a>
+            <button class="btn btn-danger" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="map-container">
+        <div id="map"></div>
+
+        <div class="controls">
+            <div class="status" id="status">
+                🗺️ Map loaded successfully!
+            </div>
+
+            <div class="control-group">
+                <h3>📍 Map Controls</h3>
+                <button class="btn" onclick="getCurrentLocation()">📍 My Location</button>
+                <button class="btn" onclick="clearMarkers()">🗑️ Clear Markers</button>
+            </div>
+
+            <div class="control-group">
+                <h3>🎨 Map Style</h3>
+                <select id="mapStyle" class="form-control" onchange="changeMapStyle()">
+                    <option value="streets">🗺️ Streets</option>
+                    <option value="satellite">🛰️ Satellite</option>
+                    <option value="terrain">🏔️ Terrain</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <h3>🚌 Transport Type</h3>
+                <select id="transportType" class="form-control transport-type" onchange="changeTransportType()">
+                    <option value="metro">🚇 Metro</option>
+                    <option value="microbus">🚐 Microbus</option>
+                    <option value="minibus">🚌 Minibus</option>
+                    <option value="bus">🚌 Bus</option>
+                    <option value="taxi">🚕 Taxi</option>
+                    <option value="tram">🚋 Tram</option>
+                </select>
+
+                <!-- Metro Station Button (Hidden by default) -->
+                <div id="metroStationControls" class="metro-controls" style="display: none;">
+                    <button class="btn btn-metro" onclick="addMetroStation()">🚇 Add Metro Station</button>
+                    <button class="btn btn-secondary" onclick="viewMetroStations()">👀 View Metro Stations</button>
+                    <button class="btn btn-success" onclick="startRouteDrawing()">🔗 Connect Stations</button>
+                    <button class="btn btn-danger" onclick="finishRoute()" id="finishRouteBtn" style="display: none;">✅
+                        Finish Route</button>
+                    <button class="btn btn-warning" onclick="viewRoutes()">📋 View Routes</button>
+                    <button class="btn btn-secondary" onclick="debugMetroStations()">🔍 Debug Stations</button>
+                    <button class="btn btn-secondary" onclick="refreshRoutes()">🔄 Refresh Routes</button>
+                    <button class="btn btn-info" onclick="getMetroNetworkData()">📊 Network Data</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>🔍 Search Location</h3>
+                <input type="text" id="searchLocation" placeholder="Enter address or place" class="form-control">
+                <button class="btn" onclick="searchPlace()">Search</button>
+            </div>
+
+            <div class="control-group">
+                <h3>📊 Map Info</h3>
+                <p><strong>Zoom:</strong> <span id="zoomLevel">10</span></p>
+                <p><strong>Center:</strong> <span id="mapCenter">30.0444, 31.2357</span></p>
+                <p><strong>Markers:</strong> <span id="markerCount">0</span></p>
+                <p><strong>Transport:</strong> <span id="selectedTransport">🚇 Metro</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Form (Hidden by default) -->
+    <div id="loginForm" class="login-form hidden">
+        <h2>🔐 Login Required</h2>
+        <p>Please login to access the live map</p>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button onclick="login()">Login</button>
+        <div id="loginError" class="error"></div>
+        <div id="loginSuccess" class="success"></div>
+    </div>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        let map;
+        let markers = [];
+        let userLocationMarker = null;
+        let currentMapStyle = 'streets';
+
+        // Route drawing variables
+        let isDrawingRoute = false;
+        let selectedStations = [];
+        let routeLine = null;
+        let routeMarkers = [];
+
+        // Map tile layers
+        const mapStyles = {
+            streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }),
+            satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: '&copy; <a href="https://www.esri.com/">Esri</a>'
+            }),
+            terrain: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://opentopomap.org/">OpenTopoMap</a>'
+            })
+        };
+
+        // Initialize map
+        function initMap() {
+            // Default to Cairo, Egypt
+            map = L.map('map').setView([30.0444, 31.2357], 10);
+
+            // Add default tile layer
+            mapStyles[currentMapStyle].addTo(map);
+
+            // Add map event listeners
+            map.on('zoomend', updateMapInfo);
+            map.on('moveend', updateMapInfo);
+
+            // Add a test marker
+            const testMarker = L.marker([30.0444, 31.2357]).addTo(map);
+            testMarker.bindPopup('📍 Cairo, Egypt<br>Welcome to Mwaslatak!').openPopup();
+            markers.push(testMarker);
+
+            updateMapInfo();
+            updateStatus('🗺️ Map initialized successfully!');
+        }
+
+        // Change map style
+        function changeMapStyle() {
+            const style = document.getElementById('mapStyle').value;
+
+            // Remove current layer
+            map.eachLayer(layer => {
+                if (layer instanceof L.TileLayer) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            // Add new layer
+            mapStyles[style].addTo(map);
+            currentMapStyle = style;
+
+            updateStatus(`🎨 Map style changed to ${style}`);
+        }
+
+        // Change transport type
+        function changeTransportType() {
+            const transportType = document.getElementById('transportType').value;
+            const transportNames = {
+                'metro': '🚇 Metro',
+                'microbus': '🚐 Microbus',
+                'minibus': '🚌 Minibus',
+                'bus': '🚌 Bus',
+                'taxi': '🚕 Taxi',
+                'tram': '🚋 Tram'
+            };
+
+            // Show/hide metro controls based on selection
+            const metroControls = document.getElementById('metroStationControls');
+            if (transportType === 'metro') {
+                metroControls.style.display = 'block';
+                loadMetroStationsFromDatabase(); // Load metro stations when metro is selected
+            } else {
+                metroControls.style.display = 'none';
+                clearMetroStations(); // Clear metro stations when other transport is selected
+            }
+
+            document.getElementById('selectedTransport').textContent = transportNames[transportType];
+            updateStatus(`🚌 Transport type changed to: ${transportNames[transportType]}`);
+        }
+
+        // Load metro stations from database
+        async function loadMetroStationsFromDatabase() {
+            try {
+                const token = localStorage.getItem('adminToken');
+                if (!token) {
+                    updateStatus('❌ Authentication required');
+                    return;
+                }
+
+                const response = await fetch('/api/stations/type/metro', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Clear existing metro stations first
+                    clearMetroStations();
+
+                    // Add metro stations from database
+                    result.data.forEach(station => {
+                        addMetroStationMarker(station);
+                    });
+
+                    // Load and display existing routes
+                    await loadAndDisplayRoutes();
+
+                    updateStatus(`🚇 Loaded ${result.data.length} metro stations and existing routes from database`);
+                } else {
+                    updateStatus(`❌ Error loading metro stations: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Error loading metro stations:', error);
+                updateStatus('❌ Error loading metro stations from database');
+            }
+        }
+
+        // Load and display existing routes
+        async function loadAndDisplayRoutes() {
+            try {
+                const token = localStorage.getItem('adminToken');
+                if (!token) {
+                    return;
+                }
+
+                const response = await fetch('/api/routes/type/metro', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Clear existing route lines
+                    clearRouteLines();
+
+                    // Display each route
+                    result.data.forEach(route => {
+                        displayRoute(route);
+                    });
+
+                    console.log(`Loaded ${result.data.length} metro routes`);
+                } else {
+                    console.error('Error loading routes:', result.error);
+                }
+            } catch (error) {
+                console.error('Error loading routes:', error);
+            }
+        }
+
+        // Display a route on the map
+        function displayRoute(route) {
+            if (!route.stations || route.stations.length < 2) {
+                return;
+            }
+
+            // Create path points from station locations
+            const pathPoints = route.stations.map(station => [station.location.lat, station.location.lng]);
+
+            // Create route line with different color for each route
+            const routeColor = getRouteColor(route._id);
+            const routeLine = L.polyline(pathPoints, {
+                color: routeColor,
+                weight: 3,
+                opacity: 0.7,
+                dashArray: '5, 5' // Dashed line to distinguish from active route drawing
+            }).addTo(map);
+
+            // Add route information to popup
+            const routeInfo = `
+                <div style="text-align: center;">
+                    <h4>🚇 ${route.name}</h4>
+                    <p><strong>Stations:</strong> ${route.stations.length}</p>
+                    <p><strong>Distance:</strong> ${route.distance.toFixed(2)} km</p>
+                    <p><strong>Price:</strong> ${route.pricing.basePrice} ${route.pricing.currency}</p>
+                    <p><strong>Created:</strong> ${new Date(route.createdAt).toLocaleDateString()}</p>
+                </div>
+            `;
+
+            routeLine.bindPopup(routeInfo);
+
+            // Store route line for cleanup
+            if (!window.routeLines) {
+                window.routeLines = [];
+            }
+            window.routeLines.push(routeLine);
+        }
+
+        // Generate consistent color for route based on ID
+        function getRouteColor(routeId) {
+            const colors = ['#3498db', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c', '#34495e'];
+            const hash = routeId.split('').reduce((a, b) => {
+                a = ((a << 5) - a) + b.charCodeAt(0);
+                return a & a;
+            }, 0);
+            return colors[Math.abs(hash) % colors.length];
+        }
+
+        // Clear existing route lines
+        function clearRouteLines() {
+            if (window.routeLines) {
+                window.routeLines.forEach(line => {
+                    map.removeLayer(line);
+                });
+                window.routeLines = [];
+            }
+        }
+
+        // Add metro station marker from database data
+        function addMetroStationMarker(station) {
+            const metroIcon = L.divIcon({
+                className: 'metro-station-marker',
+                html: '<div style="background-color: #e74c3c; width: 40px; height: 40px; border-radius: 50%; border: 4px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; cursor: pointer;">🚇</div>',
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+            });
+
+            const marker = L.marker([station.location.lat, station.location.lng], {
+                icon: metroIcon
+            }).addTo(map);
+
+            // Store station ID in marker for route drawing
+            marker.stationId = station._id;
+
+            // Create popup content
+            const popupContent = `
+                <div style="text-align: center;">
+                    <h4>🚇 ${station.name}</h4>
+                    <p><strong>Type:</strong> Metro Station</p>
+                    <p><strong>Location:</strong> ${station.location.lat.toFixed(4)}, ${station.location.lng.toFixed(4)}</p>
+                    <p><strong>ID:</strong> ${station._id}</p>
+                    ${station.description ? `<p><strong>Description:</strong> ${station.description}</p>` : ''}
+                </div>
+            `;
+
+            marker.bindPopup(popupContent);
+
+            // Add long press functionality (mouse and touch)
+            let pressTimer = null;
+            let isLongPress = false;
+
+            // Mouse events
+            marker.on('mousedown', function (e) {
+                isLongPress = false;
+                pressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    marker.openPopup();
+                }, 500); // 500ms for long press
+            });
+
+            marker.on('mouseup', function (e) {
+                clearTimeout(pressTimer);
+            });
+
+            marker.on('mouseleave', function (e) {
+                clearTimeout(pressTimer);
+            });
+
+            // Touch events for mobile
+            marker.on('touchstart', function (e) {
+                isLongPress = false;
+                pressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    marker.openPopup();
+                }, 500); // 500ms for long press
+            });
+
+            marker.on('touchend', function (e) {
+                clearTimeout(pressTimer);
+            });
+
+            marker.on('touchcancel', function (e) {
+                clearTimeout(pressTimer);
+            });
+
+            // Prevent default popup on click
+            marker.off('click');
+
+            markers.push(marker);
+        }
+
+        // Clear metro stations from map
+        function clearMetroStations() {
+            // Remove metro station markers
+            const metroMarkers = markers.filter(marker =>
+                marker.options.icon && marker.options.icon.options.className === 'metro-station-marker'
+            );
+
+            metroMarkers.forEach(marker => {
+                map.removeLayer(marker);
+                const index = markers.indexOf(marker);
+                if (index > -1) {
+                    markers.splice(index, 1);
+                }
+            });
+
+            // Clear route lines
+            clearRouteLines();
+
+            updateMapInfo();
+        }
+
+        // Metro Station Functions
+        function addMetroStation() {
+            updateStatus('🚇 Click on the map to add a metro station');
+
+            // Add click listener for metro station placement
+            map.on('click', function (e) {
+                const stationName = prompt('Enter metro station name:', 'Metro Station');
+                if (stationName) {
+                    saveStationToDatabase(stationName, 'metro', e.latlng);
+                }
+
+                // Remove the click listener after one use
+                map.off('click');
+            });
+        }
+
+        async function saveStationToDatabase(name, stationType, location) {
+            try {
+                const token = localStorage.getItem('adminToken');
+                if (!token) {
+                    updateStatus('❌ Authentication required');
+                    return;
+                }
+
+                const stationData = {
+                    name,
+                    stationType,
+                    location: {
+                        lat: location.lat,
+                        lng: location.lng
+                    }
+                };
+
+                const response = await fetch('/api/stations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(stationData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Add the new station marker using the shared function
+                    addMetroStationMarker(result.data);
+
+                    // Open popup for the newly created station
+                    const newMarker = markers[markers.length - 1];
+                    newMarker.openPopup();
+
+                    updateMapInfo();
+                    updateStatus(`🚇 Metro station "${name}" saved to database successfully!`);
+                } else {
+                    updateStatus(`❌ Error saving station: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Error saving station:', error);
+                updateStatus('❌ Error saving station to database');
+            }
+        }
+
+        function viewMetroStations() {
+            const metroStations = markers.filter(marker =>
+                marker.options.icon && marker.options.icon.options.className === 'metro-station-marker'
+            );
+
+            if (metroStations.length === 0) {
+                updateStatus('🚇 No metro stations found. Add some metro stations first!');
+                return;
+            }
+
+            let stationList = `🚇 Metro Stations (${metroStations.length}):\n\n`;
+            metroStations.forEach((station, index) => {
+                const latLng = station.getLatLng();
+                stationList += `${index + 1}. ${station.getPopup().getContent().match(/<h4>(.*?)<\/h4>/)[1]}\n`;
+                stationList += `   📍 Location: ${latLng.lat.toFixed(4)}, ${latLng.lng.toFixed(4)}\n\n`;
+            });
+
+            alert(stationList);
+            updateStatus(`🚇 Displayed ${metroStations.length} metro stations`);
+        }
+
+        // Debug function to check metro stations
+        function debugMetroStations() {
+            const metroStations = markers.filter(marker =>
+                marker.options.icon && marker.options.icon.options.className === 'metro-station-marker'
+            );
+            console.log('Total markers:', markers.length);
+            console.log('Metro stations found:', metroStations.length);
+            metroStations.forEach((station, index) => {
+                console.log(`Station ${index + 1}:`, station.getLatLng(), station.stationId);
+            });
+            updateStatus(`🔍 Debug: Found ${metroStations.length} metro stations on map`);
+        }
+
+        // Refresh routes display
+        async function refreshRoutes() {
+            updateStatus('🔄 Refreshing routes...');
+            await loadAndDisplayRoutes();
+            updateStatus('✅ Routes refreshed successfully!');
+        }
+
+        // Get metro network data from API
+        async function getMetroNetworkData() {
+            try {
+                const token = localStorage.getItem('adminToken');
+                if (!token) {
+                    updateStatus('❌ Authentication required');
+                    return;
+                }
+
+                updateStatus('📊 Fetching metro network data...');
+
+                const response = await fetch('/api/routes/metro-network', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Display network data in a formatted way
+                    displayNetworkData(result.data);
+                    updateStatus('✅ Metro network data loaded successfully!');
+                } else {
+                    updateStatus(`❌ Error loading network data: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Error loading network data:', error);
+                updateStatus('❌ Error loading network data');
+            }
+        }
+
+        // Display network data in a formatted popup
+        function displayNetworkData(data) {
+            const { metadata, stations, routes, interchanges, statistics } = data;
+
+            const networkInfo = `
+                <div style="text-align: left; max-width: 500px;">
+                    <h3>🚇 Metro Network Overview</h3>
+                    
+                    <h4>📊 Network Statistics:</h4>
+                    <p><strong>Total Stations:</strong> ${metadata.totalStations}</p>
+                    <p><strong>Total Routes:</strong> ${metadata.totalRoutes}</p>
+                    <p><strong>Total Connections:</strong> ${metadata.totalConnections}</p>
+                    <p><strong>Interchange Stations:</strong> ${metadata.interchangeStations}</p>
+                    <p><strong>Last Updated:</strong> ${new Date(metadata.lastUpdated).toLocaleString()}</p>
+                    
+                    <h4>📈 Network Analysis:</h4>
+                    <p><strong>Avg Stations per Route:</strong> ${statistics.averageStationsPerRoute}</p>
+                    <p><strong>Avg Route Length:</strong> ${statistics.averageRouteLength} km</p>
+                    <p><strong>Network Density:</strong> ${statistics.networkDensity}</p>
+                    
+                    <h4>🔄 Interchange Stations:</h4>
+                    ${interchanges.length > 0 ?
+                    interchanges.map(interchange =>
+                        `<p>• <strong>${interchange.name}</strong> (${interchange.routeCount} routes)</p>`
+                    ).join('') :
+                    '<p>No interchange stations found</p>'
+                }
+                    
+                    <h4>🚇 Routes:</h4>
+                    ${routes.map(route =>
+                    `<p>• <strong>${route.name}</strong> - ${route.stations.length} stations, ${route.distance.toFixed(2)} km</p>`
+                ).join('')}
+                    
+                    <p style="margin-top: 20px; font-size: 12px; color: #666;">
+                        💡 This data is perfect for mobile apps, route planning, and network analysis!
+                    </p>
+                </div>
+            `;
+
+            // Create a custom popup
+            const popup = L.popup({
+                maxWidth: 600,
+                maxHeight: 400,
+                className: 'network-data-popup'
+            })
+                .setLatLng(map.getCenter())
+                .setContent(networkInfo)
+                .openOn(map);
+        }
+
+        // Route Drawing Functions
+        function startRouteDrawing() {
+            isDrawingRoute = true;
+            selectedStations = [];
+            document.getElementById('finishRouteBtn').style.display = 'inline-block';
+            updateStatus('🔗 Click on metro stations to connect them. Click "Finish Route" when done.');
+
+            // Add click listeners directly to metro station markers
+            markers.forEach(marker => {
+                if (marker.options.icon && marker.options.icon.options.className === 'metro-station-marker') {
+                    marker.on('click', function (e) {
+                        if (isDrawingRoute) {
+                            console.log('Station clicked:', marker);
+                            selectStationForRoute(marker);
+                            e.originalEvent.stopPropagation(); // Prevent map click
+                        }
+                    });
+                }
+            });
+
+            // Add map click listener for feedback
+            map.on('click', function (e) {
+                if (isDrawingRoute) {
+                    updateStatus('❌ Please click directly on a metro station (red circle)');
+                }
+            });
+        }
+
+        function selectStationForRoute(station) {
+            const stationId = station.stationId || station._id;
+
+            if (selectedStations.find(s => s.id === stationId)) {
+                updateStatus('❌ Station already selected');
+                return;
+            }
+
+            selectedStations.push({
+                id: stationId,
+                marker: station,
+                latLng: station.getLatLng()
+            });
+
+            // Highlight selected station
+            station.setIcon(L.divIcon({
+                className: 'selected-station-marker',
+                html: '<div style="background-color: #27ae60; width: 50px; height: 50px; border-radius: 50%; border: 4px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; cursor: pointer;">🚇</div>',
+                iconSize: [50, 50],
+                iconAnchor: [25, 25]
+            }));
+
+            // Draw route line
+            if (selectedStations.length > 1) {
+                if (routeLine) {
+                    map.removeLayer(routeLine);
+                }
+
+                const pathPoints = selectedStations.map(s => [s.latLng.lat, s.latLng.lng]);
+                routeLine = L.polyline(pathPoints, {
+                    color: '#27ae60',
+                    weight: 4,
+                    opacity: 0.8
+                }).addTo(map);
+            }
+
+            updateStatus(`🔗 Station ${selectedStations.length} selected. Click another station or finish route.`);
+        }
+
+        async function finishRoute() {
+            if (selectedStations.length < 2) {
+                updateStatus('❌ Need at least 2 stations to create a route');
+                return;
+            }
+
+            const routeName = prompt('Enter route name:', `Metro Route ${new Date().toLocaleDateString()}`);
+            if (!routeName) {
+                updateStatus('❌ Route name is required');
+                return;
+            }
+
+            const basePrice = parseFloat(prompt('Enter base price (EGP):', '5'));
+            if (isNaN(basePrice) || basePrice < 0) {
+                updateStatus('❌ Please enter a valid price');
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('adminToken');
+                if (!token) {
+                    updateStatus('❌ Authentication required');
+                    return;
+                }
+
+                const routeData = {
+                    name: routeName,
+                    description: `Metro route connecting ${selectedStations.length} stations`,
+                    transportType: 'metro',
+                    stationIds: selectedStations.map(s => s.id),
+                    path: selectedStations.map(s => ({ lat: s.latLng.lat, lng: s.latLng.lng })),
+                    distance: calculateRouteDistance(selectedStations),
+                    pricing: {
+                        basePrice: basePrice,
+                        pricePerStation: 0,
+                        currency: 'EGP'
+                    }
+                };
+
+                const response = await fetch('/api/routes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(routeData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    updateStatus(`✅ Route "${routeName}" saved successfully!`);
+                    resetRouteDrawing();
+
+                    // Refresh route display to show the new route
+                    await loadAndDisplayRoutes();
+                } else {
+                    updateStatus(`❌ Error saving route: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Error saving route:', error);
+                updateStatus('❌ Error saving route to database');
+            }
+        }
+
+        function calculateRouteDistance(stations) {
+            let totalDistance = 0;
+            for (let i = 1; i < stations.length; i++) {
+                const prev = stations[i - 1].latLng;
+                const curr = stations[i].latLng;
+                totalDistance += map.distance(prev, curr) / 1000; // Convert to km
+            }
+            return totalDistance;
+        }
+
+        function resetRouteDrawing() {
+            isDrawingRoute = false;
+            document.getElementById('finishRouteBtn').style.display = 'none';
+            selectedStations.forEach(station => {
+                // Reset station icon
+                station.marker.setIcon(L.divIcon({
+                    className: 'metro-station-marker',
+                    html: '<div style="background-color: #e74c3c; width: 40px; height: 40px; border-radius: 50%; border: 4px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; cursor: pointer;">🚇</div>',
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 20]
+                }));
+            });
+
+            if (routeLine) {
+                map.removeLayer(routeLine);
+                routeLine = null;
+            }
+
+            selectedStations = [];
+
+            // Remove click listeners from metro station markers
+            markers.forEach(marker => {
+                if (marker.options.icon && marker.options.icon.options.className === 'metro-station-marker') {
+                    marker.off('click');
+                }
+            });
+
+            map.off('click');
+            updateStatus('✅ Route drawing completed');
+        }
+
+        async function viewRoutes() {
+            try {
+                const token = localStorage.getItem('adminToken');
+                if (!token) {
+                    updateStatus('❌ Authentication required');
+                    return;
+                }
+
+                const response = await fetch('/api/routes', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    let routeList = `📋 All Routes (${result.data.length}):\n\n`;
+                    result.data.forEach((route, index) => {
+                        routeList += `${index + 1}. 🚇 ${route.name}\n`;
+                        routeList += `   📍 Stations: ${route.stations.length}\n`;
+                        routeList += `   📏 Distance: ${route.distance.toFixed(2)} km\n`;
+                        routeList += `   💰 Price: ${route.pricing.basePrice} ${route.pricing.currency}\n`;
+                        routeList += `   🚌 Type: ${route.transportType}\n`;
+                        routeList += `   📅 Created: ${new Date(route.createdAt).toLocaleDateString()}\n\n`;
+                    });
+                    alert(routeList);
+                } else {
+                    updateStatus(`❌ Error loading routes: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Error loading routes:', error);
+                updateStatus('❌ Error loading routes');
+            }
+        }
+
+        // Get user's current location
+        function getCurrentLocation() {
+            if (!navigator.geolocation) {
+                updateStatus('❌ Geolocation is not supported by this browser.');
+                return;
+            }
+
+            updateStatus('📍 Getting your location...');
+
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    // Remove existing user location marker
+                    if (userLocationMarker) {
+                        map.removeLayer(userLocationMarker);
+                    }
+
+                    // Add new user location marker
+                    userLocationMarker = L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            className: 'user-location-marker',
+                            html: '<div style="background-color: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+                            iconSize: [20, 20],
+                            iconAnchor: [10, 10]
+                        })
+                    }).addTo(map);
+
+                    userLocationMarker.bindPopup('📍 Your Location').openPopup();
+
+                    // Center map on user location
+                    map.setView([lat, lng], 15);
+
+                    updateStatus(`📍 Found your location: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+                },
+                function (error) {
+                    let errorMessage = '❌ Error getting location: ';
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage += 'Permission denied.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage += 'Position unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage += 'Request timeout.';
+                            break;
+                        default:
+                            errorMessage += 'Unknown error.';
+                            break;
+                    }
+                    updateStatus(errorMessage);
+                }
+            );
+        }
+
+        // Clear all markers
+        function clearMarkers() {
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            if (userLocationMarker) {
+                map.removeLayer(userLocationMarker);
+                userLocationMarker = null;
+            }
+
+            updateMapInfo();
+            updateStatus('🗑️ All markers cleared');
+        }
+
+        // Search for a place (simplified - you can integrate with a geocoding service)
+        function searchPlace() {
+            const query = document.getElementById('searchLocation').value;
+            if (!query) {
+                updateStatus('❌ Please enter a search query');
+                return;
+            }
+
+            updateStatus(`🔍 Searching for: ${query}`);
+
+            // This is a simplified search - in a real app you'd use a geocoding service
+            // For now, we'll just add a marker at a random location near Cairo
+            const lat = 30.0444 + (Math.random() - 0.5) * 0.1;
+            const lng = 31.2357 + (Math.random() - 0.5) * 0.1;
+
+            const marker = L.marker([lat, lng]).addTo(map);
+            marker.bindPopup(`🔍 Search result: ${query}`).openPopup();
+            markers.push(marker);
+
+            map.setView([lat, lng], 13);
+            updateMapInfo();
+            updateStatus(`🔍 Added marker for: ${query}`);
+        }
+
+        // Update map information display
+        function updateMapInfo() {
+            const zoom = map.getZoom();
+            const center = map.getCenter();
+            const markerCount = markers.length + (userLocationMarker ? 1 : 0);
+            const transportType = document.getElementById('transportType').value;
+            const transportNames = {
+                'metro': '🚇 Metro',
+                'microbus': '🚐 Microbus',
+                'minibus': '🚌 Minibus',
+                'bus': '🚌 Bus',
+                'taxi': '🚕 Taxi',
+                'tram': '🚋 Tram'
+            };
+
+            document.getElementById('zoomLevel').textContent = zoom;
+            document.getElementById('mapCenter').textContent = `${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}`;
+            document.getElementById('markerCount').textContent = markerCount;
+            document.getElementById('selectedTransport').textContent = transportNames[transportType];
+        }
+
+        // Update status message
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        // Authentication functions
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+            const successDiv = document.getElementById('loginSuccess');
+
+            if (!email || !password) {
+                errorDiv.textContent = 'Please fill in all fields';
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('adminToken', result.token);
+                    successDiv.textContent = 'Login successful!';
+                    setTimeout(() => {
+                        document.getElementById('loginForm').classList.add('hidden');
+                        initMap();
+                    }, 1000);
+                } else {
+                    errorDiv.textContent = result.error || 'Login failed';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Network error. Please try again.';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            document.getElementById('loginForm').classList.remove('hidden');
+            if (map) {
+                map.remove();
+            }
+        }
+
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                document.getElementById('loginForm').classList.remove('hidden');
+                return;
+            }
+
+            // Verify token is still valid
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.exp * 1000 <= Date.now()) {
+                    localStorage.removeItem('adminToken');
+                    document.getElementById('loginForm').classList.remove('hidden');
+                    return;
+                }
+            } catch (error) {
+                localStorage.removeItem('adminToken');
+                document.getElementById('loginForm').classList.remove('hidden');
+                return;
+            }
+
+            console.log('✅ Authentication verified');
+            initMap();
+        });
+    </script>
+</body>
+
+</html>
