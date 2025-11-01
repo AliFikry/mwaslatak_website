@@ -4,8 +4,9 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 
 const app = express();
+
 app.use(cors({
-    origin: "*", // allow all origins for testing
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
@@ -31,10 +32,14 @@ mongoose
     .then(() => console.log("✅ MongoDB connected"))
     .catch((err) => console.error("MongoDB connection error:", err));
 
-// Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🌐 http://localhost:${PORT}`);
+// 👇 Run only locally
+if (require.main === module) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running on port ${PORT}`);
+        console.log(`🌐 http://localhost:${PORT}`);
+    });
+}
 
-});
+// 👇 Export for Vercel
+module.exports = app;
