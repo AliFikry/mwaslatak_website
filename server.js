@@ -1,45 +1,36 @@
+require("dotenv").config();
 const express = require("express");
-const path = require("path");
-const dotenv = require("dotenv");
 const cors = require("cors");
-
-// Import custom modules
-const routes = require("./src/server/routes");
-const errorHandler = require("./src/server/middleware/errorHandler");
-const logger = require("./src/server/middleware/logger");
-const connectDB = require("./config/database");
-
-dotenv.config();
+const mongoose = require("mongoose");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Connect to MongoDB
-connectDB();
-
-// Middleware
-app.use(cors());
-app.use(logger);
+app.use(cors({
+    origin: "*", // allow all origins for testing
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Routes (must come before static file serving)
-app.use("/", routes);
+// Import routes
+const authRoutes = require("./src/server/routes/auth");
+const stationRoutes = require("./src/server/routes/station");
+const connectionRoutes = require("./src/server/routes/connection");
 
-// Serve client assets
-app.use("/css", express.static(path.join(__dirname, "src", "client", "css")));
-app.use("/js", express.static(path.join(__dirname, "src", "client", "js")));
-app.use("/assets", express.static(path.join(__dirname, "assets")));
+// Use routes
+app.use("/api/auth", authRoutes);
+app.use("/api/stations", stationRoutes);
+app.use("/api/connections", connectionRoutes);
 
-// Serve static frontend files from /public (fallback for unmatched routes)
-app.use(express.static(path.join(__dirname, "src", "public")));
-
-// Error handling middleware (must be last)
-app.use(errorHandler);
+// Database connection
+mongoose
+    .connect(process.env.MONGO_URI)
+    .then(() => console.log("✅ MongoDB connected"))
+    .catch((err) => console.error("MongoDB connection error:", err));
 
 // Start server
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`✅ Server running on http://localhost:${PORT}`);
-    console.log(`📁 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🌐 http://localhost:${PORT}`);
+
 });
-// Test comment to trigger restart
