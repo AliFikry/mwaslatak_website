@@ -21,6 +21,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/stations", stationRoutes);
 app.use("/api/connections", connectionRoutes);
 
+app.get("/", (req, res) => {
+    res.send("🚀 Mwaslatak Transport API is running...");
+});
+
 // Database connection
 mongoose
     .connect(process.env.MONGO_URI)
